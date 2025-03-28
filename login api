@@ -1,3 +1,5 @@
+*************route in api.php ***************
+Route::post('user-login', [UserLoginController::class,'userlogin'])->name('user.login'); 
 ************************* controller ******************
 
 <?php
