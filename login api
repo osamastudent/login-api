@@ -1,0 +1,66 @@
+************************* controller ******************
+
+<?php
+namespace App\Http\Controllers;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Events\Registered;
+use App\Models\User;
+use Illuminate\Http\Request; 
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+
+class UserLoginController extends Controller
+{
+
+
+ public function userlogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $response = [
+                'success' => false,
+                'message' => $validator->errors()
+            ];
+            return response()->json($response, 400);
+        }
+        
+        $user = User::where('email', $request->email)->first();
+
+        // if (!$user || !password_verify($request->password, $user->password)) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Invalid email or password',
+        //     ], 401);
+        // }
+
+                if ($user) {
+                // Check password only if user exists
+                if (!password_verify($request->password, $user->password)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid password', 
+                    ], 401);
+                }
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid email', 
+                ], 401);
+            }
+        
+        $token = $user->createToken('mobile-app-token')->plainTextToken;
+
+        return response()->json([ 
+            'success' => true,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user,
+            'message' => 'User Logged In Succesfully!',
+        ]);
+    }
+
+}
